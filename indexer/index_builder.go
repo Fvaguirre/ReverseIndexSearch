@@ -39,7 +39,7 @@ func runIndexer(filename string, filter_filename string) (map[string] map[string
   // Make the necessary get requests for all the urls, limit 200 at a time
   res := loadReviews(urls, 200)
   // Get our built indexes, and filtered words as a slice
-  index , counts_index, filtered_words := indexReviews(res, "./data/" + filtered_filename)
+  index , counts_index, filtered_words := indexReviews(res, "./data/" + filter_filename)
 
   // Convert filtered words to slice for quicker access
   filtered_words_map := make(map[string]bool)
@@ -96,9 +96,15 @@ func loadReviews(urls []string, limit int) []httpResponse {
     if len(results) == len(urls) {
   			break
   		}
+    }
   return results
 }
 
+// Makes a get request for a target url and uses a buffered channel and results
+// channel to do so concurrently
+// Params: string url, chan struct{} to buffer the get requests, and a chan
+// *httpResponse to hold the resulting responses
+// Modifies: buffered chan, results_chan
 func makeRequest(url string, buffered_chan chan struct{}, results_chan chan <- *httpResponse) {
   // Placeholder for buffered chan
   buffered_chan <- struct{}{}
@@ -140,7 +146,7 @@ func indexReviews(reviews []httpResponse, filter_filename string) (map[string] m
     curr_text = replacer.Replace(curr_text)
     // Filter words out
     filterWords(&curr_text, filtered_words)
-
+    // Format resulting text into slice
     formatted_text := strings.Fields(curr_text)
     // Loop through each word in text and input into index
     for i, word := range formatted_text {
@@ -148,12 +154,15 @@ func indexReviews(reviews []httpResponse, filter_filename string) (map[string] m
       // Check to see if word is alredy in index
       _, in_index := index[word]
       _, in_counts := count_index[word]
-
+      // If word not in the index yet then set its value to an empty map
       if !in_counts {
         count_index[word] = make(map[string] int)
       }
+      // Check to see if the current review title has been inputted into the
+      // index at for the current word
       _, title_in_counts := count_index[word][curr_title]
 
+      // If the title has been inputted, but has yet to be counted or
       if title_in_counts && !counted || !title_in_counts {
         count_index[word][curr_title] += 1
         counted = true

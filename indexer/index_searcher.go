@@ -29,7 +29,7 @@ func isAlphaNumeric(s string) bool {
   return true
 }
 
-func binSearch(val int , vals []int , l int, r int) int{
+func binSearch(val string , vals []string , l int, r int) int{
   if r >= l {
     mid := l + (r-l)/2
     if vals[mid] == val {
@@ -43,6 +43,14 @@ func binSearch(val int , vals []int , l int, r int) int{
   }
   return -1
 }
+func isIn(val int, vals []int) int{
+  for i, v := range vals {
+    if v == val {
+      return i;
+    }
+  }
+  return -1
+}
 func indexSearchWord(word string, counts map[string]map[string]int) ([]int, map[int][]string) {
   if frequencies, ok := counts[word]; ok {
 
@@ -51,13 +59,18 @@ func indexSearchWord(word string, counts map[string]map[string]int) ([]int, map[
     // Keep int keys in separate array to sort
     var keys []int
     for key, val := range frequencies {
-      inv_map[val] = append(inv_map[val], key)
+      in := binSearch(key, inv_map[val], 0, len(inv_map[val]) -1 )
+      if in == -1 {
+        inv_map[val] = append(inv_map[val], key)
+
+      }
       // If no keys or current key hasnt been put in yet
-      in := binSearch(val, keys, 0, len(keys)-1)
-      if len(keys) == 0 || in == -1 {
+      in = isIn(val, keys)
+      if len(keys) == 0 || in == -1{
         keys = append(keys, val)
       }
     }
+
 
     // Sort keys
     sort.Sort(sort.Reverse(sort.IntSlice(keys)))

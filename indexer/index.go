@@ -46,7 +46,7 @@ func (i Index) QueryWords() error {
   }
 
   sorted_keys, m := indexSearchWord(words, i.counts)
-
+  fmt.Println(sorted_keys)
   if len(sorted_keys) == 0 {
     return errors.New("No search results")
   }
