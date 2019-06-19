@@ -12,6 +12,6 @@ package comes with the exportable **Index** class and its two functions
 which operates on an Index object!
 
 ### Running the Search Engine
-* Run reviewSearchEngine.go with run reviewSearchEngine.go
+* Run reviewSearchEngine.go with "go run reviewSearchEngine.go"
 * Enter a valid keyword when prompted
 * Press q and enter to quit

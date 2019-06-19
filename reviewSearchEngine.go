@@ -41,7 +41,6 @@ func runSearchEngine() {
     // If search query returns an error simply print it
     if err != nil {
       fmt.Println(err)
-      break
     }
   }
 
