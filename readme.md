@@ -8,7 +8,8 @@ was found!
 #### The indexer Package
 The indexer package loads the data into memory and builds the given index! The
 package comes with the exportable **Index** class and its two functions
-**index.NewIndex() (index)**, and **index.QueryWord(word, string) (error)**
+**indexer.NewIndex() (Index)**, and **indexer.QueryWord(word, string) (error)**
+which operates on an Index object!
 
 ### Running the Search Engine
 * Run reviewSearchEngine.go with run reviewSearchEngine.go
