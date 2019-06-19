@@ -7,7 +7,7 @@ import (
   "sort"
 )
 
-// Checks whether given word is stored within given map
+// Checks whether given word is stored within given map.
 // Params: word string, filtered map[string]bool
 // Returns: bool; true if contained in map, false otherwise
 func isFilteredWord(word string, filtered map[string]bool) bool{
@@ -17,7 +17,9 @@ func isFilteredWord(word string, filtered map[string]bool) bool{
   return false
 }
 
-
+// Checks whether a given string is alphanumeric.
+// Params: a string
+// Returns: bool true if string is is alphanumeric; false otherwise
 func isAlphaNumeric(s string) bool {
   for _, r := range s{
     if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
@@ -28,7 +30,9 @@ func isAlphaNumeric(s string) bool {
   return true
 }
 
-
+// Checks whether a given integer is present in an unsorted slice of ints.
+// Params: an int value, and the slice of ints
+// Returns true if int is already within slice, false otherwise
 func isIn(val int, vals []int) bool{
   for _, v := range vals {
     if v == val {
@@ -38,6 +42,12 @@ func isIn(val int, vals []int) bool{
   return false
 }
 
+// Searches the map (index) for given word, then creates the inverted map and
+// sorted key slice.
+// Params: word (string) we are searching for and a map[string]map[string][]int
+// to search in
+// Returns: a sorted integer slice corresponding to keys in the returned
+// map[int][]string which maps int counts to slices of strings containing titles 
 func indexSearchWord(word string, index map[string]map[string][]int) ([]int, map[int][]string){
   // Build new map with int keys (counts) and colleges as vals
   inv_map := make(map[int][]string)

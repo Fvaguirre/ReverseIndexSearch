@@ -9,7 +9,10 @@ import(
   "errors"
 )
 
-// Index represents the word index
+// Index represents the word index; the index cleanses the text of punctuations
+// {'.', ';', ',', '!'} and maps a given word to a college name (title) and then
+// maps said name to a slice of ints representing where in the review body the
+// word was found
 type Index struct {
   index map[string]map[string][]int // Maps word -> title -> [] indexes
   filtered map[string]bool // Maps whether a word has been filtered
