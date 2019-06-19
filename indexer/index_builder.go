@@ -25,9 +25,9 @@ type httpResponse struct {
 // Creates the index in the form of three maps.
 // Params: two string corresponding to filename containing review urls to index
 // and a filename containing words to filter for index creation
-// Returns: the inverted index map[string]map[string][]int, counts index map[string]
-// map[string]int and the filtered words map map[string]bool
-func runIndexer(filename string, filter_filename string) (map[string] map[string] []int, map[string] map[string] int, map[string]bool) {
+// Returns: the inverted index map[string]map[string][]int and the filtered
+// words map map[string]bool
+func runIndexer(filename string, filter_filename string) (map[string] map[string] []int, map[string]bool) {
   // Try to open text file with urls
   file, err := os.Open("./data/" + filename)
   if err != nil {
@@ -38,15 +38,15 @@ func runIndexer(filename string, filter_filename string) (map[string] map[string
   urls := readFile(file)
   // Make the necessary get requests for all the urls, limit 200 at a time
   res := loadReviews(urls, 200)
-  // Get our built indexes, and filtered words as a slice
-  index , counts_index, filtered_words := indexReviews(res, "./data/" + filter_filename)
+  // Get our built index, and filtered words as a slice
+  index, filtered_words := indexReviews(res, "./data/" + filter_filename)
 
   // Convert filtered words to slice for quicker access
   filtered_words_map := make(map[string]bool)
   for _, fw := range filtered_words {
     filtered_words_map[fw] = true
   }
-  return index, counts_index, filtered_words_map
+  return index, filtered_words_map
 }
 
 // Reads a text file line by line and returns a string slice containing contents.
@@ -130,11 +130,17 @@ func makeRequest(url string, buffered_chan chan struct{}, results_chan chan <- *
   <- buffered_chan
 }
 
-
-func indexReviews(reviews []httpResponse, filter_filename string) (map[string] map[string] []int, map[string] map[string] int, []string) {
+// Creates the index internals from a slice of httpResponse objects and a filter
+// filename.
+// Params: a slice of httpResponse objects, and a filename to a filter file
+// Returns: the inverted index map[string]map[string][]int, and the filtered
+// word map (map[string]bool)
+func indexReviews(reviews []httpResponse, filter_filename string) (map[string] map[string] []int, []string) {
+  // Make the indexes
   index := make(map[string] (map[string] []int))
-  count_index := make(map[string] (map[string] int))
+  // Replacer for punctuation in review body
   replacer := strings.NewReplacer(",", "", ";", "", ".", "", "!", "")
+  // Get the words to filter
   filtered_words := getFilteredWords(filter_filename)
   for _, review := range reviews {
     fmt.Println("indexing")
@@ -150,45 +156,40 @@ func indexReviews(reviews []httpResponse, filter_filename string) (map[string] m
     formatted_text := strings.Fields(curr_text)
     // Loop through each word in text and input into index
     for i, word := range formatted_text {
-      counted := false
       // Check to see if word is alredy in index
       _, in_index := index[word]
-      _, in_counts := count_index[word]
-      // If word not in the index yet then set its value to an empty map
-      if !in_counts {
-        count_index[word] = make(map[string] int)
-      }
-      // Check to see if the current review title has been inputted into the
-      // index at for the current word
-      _, title_in_counts := count_index[word][curr_title]
 
-      // If the title has been inputted, but has yet to be counted or
-      if title_in_counts && !counted || !title_in_counts {
-        count_index[word][curr_title] += 1
-        counted = true
-      }
-
+      // if word not in index then add it
       if !in_index {
         index[word] = make(map[string] []int)
       }
+      // Append current index in review for the given word
       index[word][curr_title] = append(index[word][curr_title], i)
     }
     fmt.Println("Finished.")
   }
-
-  return index, count_index, filtered_words
+  return index, filtered_words
 }
 
+// Creates a slice of strings with the words to filter
+// Params: the filename for the txt file with the line-break separated words to
+// filter
+// Returns: the slice of strings with the filter words
 func getFilteredWords(filter_filename string) []string {
   file, err := os.Open(filter_filename)
   if err != nil {
     log.Fatal(err)
   }
   defer file.Close()
+  // Read file line by line
   stop_words := readFile(file)
   return stop_words
 }
 
+// Filters the target words from a given string
+// Params: a pointer to the string you want to modify, and a slice of strings
+// containing the words you want to filter
+// Modifies: the text string pointer
 func filterWords(text *string, filtered_words []string) {
   // Loop through each of the stop words and filter
   for _, word := range filtered_words {

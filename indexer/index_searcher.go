@@ -1,24 +1,23 @@
+// Package 'indexer' provides the internals for building a map-based search
+// index; It provides the needed file handling, http requests and map (index)
+// creation
 package indexer
 
 import (
   "sort"
-  // "fmt"
 )
 
+// Checks whether given word is stored within given map
+// Params: word string, filtered map[string]bool
+// Returns: bool; true if contained in map, false otherwise
 func isFilteredWord(word string, filtered map[string]bool) bool{
   if _, in_map := filtered[word]; in_map {
     return true
   }
   return false
 }
-func isValidQuery(words []string, filtered map[string]bool) bool{
-  for _, word := range words {
-    if !isAlphaNumeric(word) {
-      return false
-    }
-  }
-  return true
-}
+
+
 func isAlphaNumeric(s string) bool {
   for _, r := range s{
     if (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9') {
@@ -29,58 +28,37 @@ func isAlphaNumeric(s string) bool {
   return true
 }
 
-func binSearch(val string , vals []string , l int, r int) int{
-  if r >= l {
-    mid := l + (r-l)/2
-    if vals[mid] == val {
-      return mid
-    }
 
-    if vals[mid] > val {
-      return binSearch(val, vals, l, mid - 1)
-    }
-    return binSearch(val, vals, mid + 1, r)
-  }
-  return -1
-}
-func isIn(val int, vals []int) int{
-  for i, v := range vals {
+func isIn(val int, vals []int) bool{
+  for _, v := range vals {
     if v == val {
-      return i;
+      return true;
     }
   }
-  return -1
+  return false
 }
-func indexSearchWord(word string, counts map[string]map[string]int) ([]int, map[int][]string) {
-  if frequencies, ok := counts[word]; ok {
 
-    // Build new map with int counts as key and colleges as values
-    inv_map := make(map[int][]string)
-    // Keep int keys in separate array to sort
-    var keys []int
-    for key, val := range frequencies {
-      in := binSearch(key, inv_map[val], 0, len(inv_map[val]) -1 )
-      if in == -1 {
-        inv_map[val] = append(inv_map[val], key)
-
-      }
-      // If no keys or current key hasnt been put in yet
-      in = isIn(val, keys)
-      if len(keys) == 0 || in == -1{
-        keys = append(keys, val)
+func indexSearchWord(word string, index map[string]map[string][]int) ([]int, map[int][]string){
+  // Build new map with int keys (counts) and colleges as vals
+  inv_map := make(map[int][]string)
+  // Keep int keys in separate arrays to sort
+  var keys []int
+  // Check if word is in index
+  if title_indexes, ok := index[word]; ok {
+    // Populate both inv_map and keys
+    for key, val := range title_indexes {
+      // Add title to int count key
+      inv_map[len(val)] = append(inv_map[len(val)], key)
+      if in := isIn(len(val), keys); !in {
+        keys = append(keys, len(val))
       }
     }
-
-
     // Sort keys
     sort.Sort(sort.Reverse(sort.IntSlice(keys)))
-    // Sort internal inv_map arrays
+    // Go through and sort the titles in order
     for _, val := range inv_map {
       sort.Strings(val)
     }
-    return keys, inv_map
-
   }
-  return nil, nil
-
+  return keys, inv_map
 }
